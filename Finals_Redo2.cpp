@@ -4,7 +4,7 @@
 #include <vector> 
 #include <fstream> 
 #include <random>
-#include "sort_vector.h"
+//#include "sort_vector.h"
 
 
 //global variables
@@ -22,7 +22,6 @@ struct employee_Details{
 	std::string ID;
 	float salary;
 	
-	
 	float workTime;
 	float totalPayment;
 	std::string leaveStatus;
@@ -36,13 +35,6 @@ struct employee_Details{
 		totalPayment(employee_totalPayment),
 		leaveStatus(employee_leavestatus)
 		{}
-	//These declarations allow the constructor to "construct" the object using the code below it
-	// This can also be seen as a *function* inside the struct/class. Where if you call for the object/class employee_Details, it will construct an object with those entries immediately.
-	// With the current parameters: name, position, salary, etc. -- whenever we use a proper STL function like emplace_back, we can update all of the parameters at once
-	// simultaneously without having to use backups or additional overhead/declarations.
-	// Benefit is that when this type (employee_Details) is used as a vector type. The entire structure is "stored" in 1 index, and we only need to enter the required data.
-	// Example: if the struct's member called "employee_name" is called i.e employee 
-	//{} the brackets at the end are needed.
 	
 };
 
@@ -75,6 +67,8 @@ void update_Params();
 void inspect_Employee(int pos);
 void sort_Employee(int foo_mode);
 void first_start();
+void erase_Employee(std::string remove_employee);
+void search_Employee();
 
 int generate_ID();
 int read_params_number();
@@ -87,6 +81,7 @@ std::string read_params_ID();
 	// input_employeeWorkDetails enable adding/appending new employees
 	// write_Employee is for writing to a file
 	// update_Employee updates/overwrites the text file with the changed information (which should never be called before read_Employee)
+	// "params" related functions are for adjusting/reading universal settings for the program functionalities
 
 
 int main(){
@@ -145,8 +140,7 @@ int main(){
 							system("PAUSE");
 							system("CLS");
 							break;
-						}
-					
+						}	
 				}
 						
 			case 3:
@@ -169,17 +163,18 @@ int main(){
 		read_Employee("Names");
 		list_Employee("Names");
 		
-		read_Text.open("Employees.txt")
+		read_Text.open("Employees.txt");
 		std::cout << "\n\nNumber of Employees: " << employee_number << std::endl;
 		std::cout << "========Menu========\n\n";
 		
 		if(read_Text.is_open()){
-			std::cout << "1. Show list of all employees again." << std::endl;
+			std::cout << "1. Refresh list of employees." << std::endl;
 			std::cout << "2. Add an employee." << std::endl;
 			std::cout << "3. Inspect an employee and edit details." << std::endl;
 			std::cout << "4. Search employee." << std::endl;
 			std::cout << "5. Remove employee." << std::endl;
 			std::cout << "6. Sort employees." << std::endl;
+			std::cout << "7. Export current data for payment record." << std::endl;
 			std::cout << "\n345. Reset all wages and clocked hours." << std::endl;
 			std::cout << "123. Current ID prefix: " << read_params_ID() << " [choose to change] " << std::endl;
 		}
@@ -218,6 +213,7 @@ int main(){
 					read_Employee("Names");
 					list_Employee("Names");
 				std::cout << "\n\n";
+				system("CLS");
 			break;
 			}
 			
@@ -263,7 +259,13 @@ int main(){
 			}
 			
 		case 4:{
-			
+			std::cin.ignore(256, '\n');
+			system("CLS");
+				read_Employee("Names"); //to populate the employee vector
+				list_Employee("Names");
+			search_Employee();
+			update_Employee();
+			system("CLS");
 			break;
 		}
 		
@@ -276,19 +278,13 @@ int main(){
 				list_Employee("Names");
 				std::cout << "\nWhich employee do you want to remove [input ID or Name]? ";
 				getline(std::cin, remove_employee);
-					for(int i=0; i<employee.size(); i++){
-						if(remove_employee==employee[i].name || remove_employee==employee[i].ID){
-							employee.erase(employee.begin()+i);
-						}
-					}
+				
+					erase_Employee(remove_employee);
+					update_Employee();
 					
-				update_Employee();
 				employee_number--;
 				
-					write_Text.open("Params.txt");
-					write_Text << employee_number;
-					write_Text << prefix_ID;
-					write_Text.close();
+				update_Params();
 				
 				std::cout << "\n\nEmployee removed.\n\n";
 				system("PAUSE");
@@ -319,6 +315,12 @@ int main(){
 				break;
 			}
 				
+		case 7:{
+			system("CLS");
+			
+			break;
+		}
+				
 		case 345:
 			{
 				std::cin.ignore(256, '\n');
@@ -343,12 +345,18 @@ int main(){
 				system("CLS");	
 				std::cout << "\nInput new ID prefix: ";
 				getline(std::cin, new_prefix);
-				
+				if(new_prefix.size()>3 || new_prefix.size()<3){
+					std::cout << "\nOnly three character prefixes are accepted.\n";
+					system("PAUSE");
+					system("CLS");
+				}else{
 				write_Text.open("Params.txt");
 					write_Text << employee_number << std::endl;
 					write_Text << new_prefix + "-" << std::endl;
 				write_Text.close();
 				system("CLS");
+				}
+				
 			break;
 			}
 		
@@ -373,7 +381,6 @@ int main(){
 	}
 		
 	}while(program_run==true);
-	
 }
 
 void first_start(){
@@ -646,12 +653,12 @@ void update_Employee(){
 	write_Text.open("Employees.txt");
 	for(int i=0; i < employee.size(); i++){
 			write_Text << employee[i].name << std::endl;			//name
-			write_Text << employee[i].ID << std::endl;	//ID
+			write_Text << employee[i].ID << std::endl;				//ID
 			write_Text << employee[i].position << std::endl;		//position
-			write_Text << employee[i].salary << std::endl;		//salary
-			write_Text << employee[i].workTime << std::endl;						//workTime
-			write_Text << employee[i].totalPayment << std::endl;						//totalPayment
-			write_Text << employee[i].leaveStatus << std::endl;					//Leavestatus
+			write_Text << employee[i].salary << std::endl;			//salary
+			write_Text << employee[i].workTime << std::endl;		//workTime
+			write_Text << employee[i].totalPayment << std::endl;	//totalPayment
+			write_Text << employee[i].leaveStatus << std::endl;		//Leavestatus
 	}
 	write_Text.close();
 }
@@ -826,6 +833,15 @@ void list_Employee(std::string foo_mode){
 }
 
 
+void erase_Employee(std::string remove_employee){
+			for(int i=0; i<employee.size(); i++){
+				if(remove_employee==employee[i].name || remove_employee==employee[i].ID){
+					employee.erase(employee.begin()+i);
+				}
+			}
+}
+
+
 void input_employeeWorkDetails(){
 
 		std::string input_textName;
@@ -894,6 +910,81 @@ void input_employeeWorkDetails(){
 
 	
 }
+
+
+void search_Employee(){
+	bool run_search=true;
+	std::vector<std::string> searchname;
+	std::vector<std::string> search_ID;
+	std::vector<int> strength;
+
+	std::string search_term;
+	std::vector<char> compare_term1;
+	std::vector<char> compare_term2;
+	strength.clear();
+	compare_term1.clear();
+	compare_term2.clear();
+	
+		
+	for(int i=0; i<employee.size(); i++){
+		search_ID.push_back(employee[i].ID);
+		searchname.push_back(employee[i].name);
+		strength.push_back(0);
+	}
+	
+	do{
+		std::cout << "\nInput term to search for: ";
+		getline(std::cin, search_term);
+		std::copy(search_term.begin(), search_term.end(), std::back_inserter(compare_term1)); //copy allows us to insert a string, character by character, into a <char> container
+		
+		
+		for(int i = 0; i < employee.size(); i++){
+			
+		std::copy(employee[i].name.begin(), employee[i].name.end(), std::back_inserter(compare_term2));
+		
+			if(search_term==employee[i].name){
+				strength[i]+=9999;
+			}
+			
+			for(int pos = 0; pos < compare_term2.size(); pos++){
+				if(   (compare_term1[pos] == compare_term2[pos])  && (compare_term1[pos+1] == compare_term2[pos+1])){
+					strength[i]++;
+					}
+				if(   (compare_term1[pos] == compare_term2[pos])  && (compare_term1[pos-1] == compare_term2[pos-1])  ){
+					strength[i]++;
+					}
+			}	
+				
+		}
+		
+		run_search=false;
+		//std::cout << "\n reach here \n";
+		
+	}while(run_search==true);
+	
+	
+	std::vector<int> strength_back;
+	strength_back = strength;
+	employee_backup = employee;
+
+		for(int i=0; i<employee.size(); i++){	
+		
+			for(int j=i; j<employee.size(); j++){
+				
+				if(strength[i] <= strength[j]){		
+						strength[i] = strength_back[j];
+						strength[j] = strength_back[i];
+						strength_back = strength;
+						
+						employee[i] = employee_backup[j];
+						employee[j] = employee_backup[i];
+						employee_backup = employee;					
+				}
+				
+			}
+					
+		}
+}	
 
 
 int generate_ID(){
