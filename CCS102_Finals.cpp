@@ -368,7 +368,9 @@ int main(){
 			list_Employee("Names");
 			std::cout << "\nInput position, name or ID to quick-add/remove clocked-in hours: ";
 			getline(std::cin, quick_add_search);
-			
+				if(quick_add_search=="0"){
+						break;
+					}
 			for(int i=0; i<employee.size(); i++){
 					if(quick_add_search==employee[i].name || quick_add_search==employee[i].ID){
 						save_position=i;
