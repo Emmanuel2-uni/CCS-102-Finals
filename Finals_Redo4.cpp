@@ -19,6 +19,7 @@ bool first_run = true;
 std::string prefix_ID;
 int choice_menu;
 int employee_number;
+std::string logged_in_user;
 
 //structs
 struct employee_Details{
@@ -163,16 +164,23 @@ int main(){
 	
 	do{	
 		//main menu
+		bool more_choices=false;
 		employee_number = read_params_number();
 		prefix_ID = read_params_ID();
 		read_Employee("Names");
 		list_Employee("Names");
 		
+		if(employee.size()==0){
+			remove("Employees.txt");
+		}
+		
 		read_Text.open("Employees.txt");
-		//std::cout << "\n\n\n\nNumber of Employees: " << employee_number << std::endl;
-		std::cout << "\n\n\n========Menu========\n\n";
+		std::cout << "\n\n\nNumber of Employees: " << employee_number << std::endl;
+		std::cout << "========Menu========\n";
+		std::cout << "Welcome, admin " << logged_in_user << "!\n";
 		
 		if(read_Text.is_open()){
+			more_choices = true;
 			std::cout << "1. Refresh list of employees." << std::endl;
 			std::cout << "2. Add an employee." << std::endl;
 			std::cout << "3. Inspect an employee and edit details." << std::endl;
@@ -198,11 +206,19 @@ int main(){
 				std::cin.ignore(256, '\n');
 				choice_menu = 999; //neutral/dump switch case variable
 				system("CLS");
-			}
+		}
+		if(more_choices==false && (choice_menu > 10 || choice_menu < 8)){
+			std::cin.clear();
+			std::cin.ignore();
+			choice_menu = 999;
+			system("CLS");
+		}
 		
 		
 		
 	switch(choice_menu){
+		
+		//Allows the user to create the text file and add their first employee
 		case 10:
 			{	
 				system("CLS");
@@ -211,6 +227,7 @@ int main(){
 			break;
 			}
 		
+		//Refreshes the list, a force read/list option
 		case 1:
 			{
 				system("CLS");
@@ -223,6 +240,7 @@ int main(){
 			break;
 			}
 			
+		//For appending/adding more employees.
 		case 2:
 			{
 				system("CLS");
@@ -231,7 +249,7 @@ int main(){
 			break;
 			}
 			
-			
+		//For inspecting an employee and then editing their details
 		case 3:
 			{
 				system("CLS");
@@ -243,8 +261,11 @@ int main(){
 	
 					read_Employee("Names"); //to populate the vector
 					list_Employee("Names");
-					std::cout << "Input position, name or ID: ";
+					std::cout << "Input position, name or ID [input 0 to exit]: ";
 					getline(std::cin, name_inspect);
+					if(name_inspect=="0"){
+						break;
+					}
 					for(int i=0; i<employee.size(); i++){
 						if(name_inspect==employee[i].name || name_inspect==employee[i].ID){
 							save_position=i;
@@ -264,6 +285,7 @@ int main(){
 				break;
 			}
 			
+		//Search function that doesn't rely on exact strings, VERY PROUD OF THIS
 		case 4:{
 			std::cin.ignore(256, '\n');
 			system("CLS");
@@ -275,6 +297,7 @@ int main(){
 			break;
 		}
 		
+		//Allows the user to remove an employee
 		case 5:
 			{
 				std::cin.ignore(256, '\n');
@@ -298,6 +321,7 @@ int main(){
 				break;
 			}
 			
+		//Sorts the list of employees
 		case 6:
 			{
 				std::cin.ignore(256, '\n');
@@ -321,6 +345,7 @@ int main(){
 				break;
 			}
 				
+		//exports the list into a human-readable format		
 		case 7:{
 			system("CLS");
 			read_Employee("Names"); 
@@ -330,7 +355,7 @@ int main(){
 			break;
 		}
 		
-		
+		//for quickly adding hours to employees
 		case 33:{
 			system("CLS");
 			std::string quick_add_search;
@@ -367,6 +392,8 @@ int main(){
 			
 			break;
 		}		
+		
+		//for clearing the entire list of hours and wages due
 		case 345:
 			{
 				std::cin.ignore(256, '\n');
@@ -382,6 +409,7 @@ int main(){
 				break;
 			}
 		
+		//allows changing the ID prefix
 		case 123:
 			{
 				std::string new_prefix;
@@ -411,7 +439,8 @@ int main(){
 				program_run=false;
 				return 0;
 			}
-			
+		
+		//allows the user to sign out and log in to a different account	
 		case 9:
 			{
 				std::cin.ignore(256, '\n');
@@ -481,7 +510,7 @@ bool account_login(){
 					getline(read_Text, read_pass);
 					if(read_user==input_user && input_pass==read_pass){
 						std::cout << "User found!" << std::endl;
-						
+							logged_in_user = input_user;
 							user_found=true;
 							read_Text.close();
 							//system("PAUSE");
@@ -870,8 +899,6 @@ void list_Employee(std::string foo_mode){
 					
 		}
 	}
-	
-	update_Employee();
 	
 	
 }
